@@ -3,6 +3,6 @@
 /// More dartdocs go here.
 library;
 
-export 'src/go_base.dart';
+export 'src/pool.dart';
 
 // TODO: Export any libraries intended for clients of this package.
