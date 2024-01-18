@@ -1,39 +1,42 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# go
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+> This is not a Go Language Repository.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+This is a isolate thread pool library for dart.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+A simple usage example:
 
 ```dart
-const like = 'sample';
+import 'dart:async';
+
+import 'package:go/go.dart';
+
+Future<void> main() async {
+  try {
+    await Pool.init();
+  } catch (e) {
+    print(e);
+  }
+
+  final results = <Completer<int>>[];
+  for (var i = 0; i < 10000; i++) {
+    results.add(Pool.go(sum1000));
+  }
+
+  for (var i = 0; i < results.length; i++) {
+    print("sum($i): ${await results[i].future}");
+  }
+
+  await Pool.close();
+}
+
+int sum1000() {
+  var sum = 0;
+  for (var i = 0; i < 1000; i++) {
+    sum += i;
+  }
+  return sum;
+}
 ```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
