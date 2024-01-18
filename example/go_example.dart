@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:go/go.dart';
 
 Future<void> main() async {
@@ -7,18 +9,21 @@ Future<void> main() async {
     print(e);
   }
 
-  var result = Pool.go(sum1000000);
+  final results = <Completer<int>>[];
+  for (var i = 0; i < 1000; i++) {
+    results.add(Pool.go(sum1000));
+  }
 
-  var sum = (await result.receive()).data;
-
-  print("sum: $sum");
+  for (var i = 0; i < results.length; i++) {
+    print("sum($i): ${await results[i].future}");
+  }
 
   await Pool.close();
 }
 
-int sum1000000() {
+int sum1000() {
   var sum = 0;
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 1000; i++) {
     sum += i;
   }
   return sum;
