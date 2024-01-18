@@ -62,7 +62,11 @@ class Thread {
 
     _resultReceivePort.listen((message) {
       if (message is Response) {
-        _returnChannels.remove(message.id)?.complete(message.result);
+        if (message.error != null) {
+          _returnChannels.remove(message.id)?.completeError(message.error);
+        } else {
+          _returnChannels.remove(message.id)?.complete(message.result);
+        }
         _count--;
       } else if (message is SendPort) {
         _jobSendPort.complete(message);
@@ -104,8 +108,8 @@ class Pool {
     }
   }
 
-  static Completer<int> go<T>(T Function() function) {
-    final completer = Completer<int>();
+  static Completer<T> go<T>(T Function() function) {
+    final completer = Completer<T>();
 
     var runnable = _threads.first;
     for (var thread in _threads) {
