@@ -3,22 +3,15 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:channel/channel.dart';
-
 const int maxInteger = 4294967296;
 
 class Job<T> {
-  final Channel<T> _channel = Channel<T>();
   final Function _function;
 
   Job(this._function);
 
   T run() {
     return _function();
-  }
-
-  Future<T?> receive() async {
-    return (await _channel.receive()).data;
   }
 }
 
