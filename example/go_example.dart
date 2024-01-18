@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:go/go.dart';
+import 'package:go_to_isolate/go.dart';
 
 Future<void> main() async {
   try {

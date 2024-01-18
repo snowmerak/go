@@ -1,7 +1,7 @@
-name: go
+name: go_to_isolate
 description: A isolate thread pool.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/snowmerak/go
 
 environment:
   sdk: ^3.2.4
