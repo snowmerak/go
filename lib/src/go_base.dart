@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:channel/channel.dart';
+
+const int maxInteger = 4294967296;
 
 class Job<T> {
   final Channel<T> _channel = Channel<T>();
@@ -26,12 +29,23 @@ class Tuple<T1, T2> {
   Tuple(this.data1, this.data2);
 }
 
+Future<dynamic> start(Request message, SendPort resultSendPort) async {
+  try {
+    final result = message.job.run();
+    resultSendPort.send(Response(message.id, result: result));
+  } catch (e) {
+    resultSendPort.send(Response(message.id, error: e));
+  }
+}
+
 class Thread {
   int _count = 0;
-  final Map<int, Channel> _returnChannels = {};
+  final Map<int, Completer> _returnChannels = {};
 
   final Completer<SendPort> _jobSendPort = Completer();
   late final ReceivePort _resultReceivePort;
+
+  final random = Random();
 
   Future<void> init() async {
     await Future.value();
@@ -45,12 +59,7 @@ class Thread {
 
       jobReceivePort.listen((message) {
         if (message is Request) {
-          try {
-            final result = message.job.run();
-            resultSendPort.send(Response(message.id, result: result));
-          } catch (e) {
-            resultSendPort.send(Response(message.id, error: e));
-          }
+          start(message, resultSendPort);
         } else if (message is Close) {
           resultSendPort.send(Close());
           jobReceivePort.close();
@@ -60,7 +69,7 @@ class Thread {
 
     _resultReceivePort.listen((message) {
       if (message is Response) {
-        _returnChannels.remove(message.id)?.send(message.result);
+        _returnChannels.remove(message.id)?.complete(message.result);
         _count--;
       } else if (message is SendPort) {
         _jobSendPort.complete(message);
@@ -72,10 +81,10 @@ class Thread {
 
   int get count => _count;
 
-  Future<void> run<T>(T Function() function, Channel<T> returnChannel) async {
-    final id = function.hashCode;
-    if (_returnChannels.containsKey(id)) {
-      throw Exception('Future already running');
+  Future<void> run<T>(T Function() function, Completer<T> returnChannel) async {
+    var id = random.nextInt(maxInteger);
+    while (_returnChannels.containsKey(id)) {
+      id = random.nextInt(maxInteger);
     }
     _count++;
     (await _jobSendPort.future).send(Request(id, Job(function)));
@@ -102,8 +111,8 @@ class Pool {
     }
   }
 
-  static Channel<T> go<T>(T Function() function) {
-    final channel = Channel<T>();
+  static Completer<int> go<T>(T Function() function) {
+    final completer = Completer<int>();
 
     var runnable = _threads.first;
     for (var thread in _threads) {
@@ -112,9 +121,9 @@ class Pool {
       }
     }
 
-    runnable.run(function, channel);
+    runnable.run(function, completer);
 
-    return channel;
+    return completer;
   }
 
   static Future<void> close() async {
