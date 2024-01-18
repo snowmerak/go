@@ -23,6 +23,7 @@ class Tuple<T1, T2> {
 }
 
 Future<dynamic> start(Request message, SendPort resultSendPort) async {
+  await Future.value();
   try {
     final result = message.job.run();
     resultSendPort.send(Response(message.id, result: result));

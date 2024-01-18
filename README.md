@@ -1,6 +1,4 @@
-# go
-
-> This is not a Go Language Repository.
+# go to isolate
 
 This is a isolate thread pool library for dart.
 
